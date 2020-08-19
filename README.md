@@ -6,6 +6,9 @@ Container toolbox to diagnose connection between databases, http services, etc..
 
 ```shell
 docker run -p 80:80 -e TEST_HTTP_GITHUB="https://github.com/" banst/cobd:latest 
+Starting up on port 80
+Running 1 test(s)...
+Passed   Http https://github.com/
 ```
 
 This will spinup a webserver which run the tests on each refreshs.
