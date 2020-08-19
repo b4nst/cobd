@@ -11,7 +11,7 @@ Running 1 test(s)...
 Passed   Http https://github.com/
 ```
 
-This will spinup a webserver which run the tests on each refreshs.
+This will spinup a webserver which run tests on each refresh.
 
 ## Environment structure
 
