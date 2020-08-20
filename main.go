@@ -31,7 +31,7 @@ func main() {
 		})
 	}
 
-	port, err := strconv.Atoi(os.Getenv("PORT"))
+	port, err := strconv.Atoi(os.Getenv("COBD_PORT"))
 	if err != nil {
 		port = 80
 	}
