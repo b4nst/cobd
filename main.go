@@ -7,7 +7,9 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"text/tabwriter"
 
@@ -21,6 +23,13 @@ func main() {
 
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/test", testHandler)
+	if os.Getenv("COBD_ENABLE_ENV") != "" {
+		http.HandleFunc("/env", envHandler)
+	} else {
+		http.HandleFunc("/env", func(w http.ResponseWriter, req *http.Request) {
+			fmt.Fprintln(w, "Env display is disable. Set COBD_ENABLE_ENV env var to enable it.")
+		})
+	}
 
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
@@ -28,6 +37,18 @@ func main() {
 	}
 	fmt.Println("Starting up on port", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprint(":", port), nil))
+}
+
+func envHandler(w http.ResponseWriter, req *http.Request) {
+	env := os.Environ()
+	sort.Strings(env)
+	tw := tabwriter.NewWriter(w, 0, 2, 1, ' ', 0)
+	defer tw.Flush()
+
+	for _, e := range env {
+		kv := strings.SplitN(e, "=", 2)
+		fmt.Fprintln(tw, kv[0], "\t", kv[1])
+	}
 }
 
 func testHandler(w http.ResponseWriter, req *http.Request) {
@@ -65,7 +86,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 func runTests(testables []testable.Testable, output io.Writer) {
 	var wg sync.WaitGroup
 	wg.Add(len(testables))
-	w := tabwriter.NewWriter(output, 0, 1, 1, '\t', 0)
+	w := tabwriter.NewWriter(output, 0, 2, 1, ' ', 0)
 	passed, failed := "Passed", "Failed"
 	if output == os.Stdout {
 		passed = color.GreenString(passed)
