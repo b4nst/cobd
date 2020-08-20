@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -37,10 +38,28 @@ func testHandler(w http.ResponseWriter, req *http.Request) {
 func rootHandler(w http.ResponseWriter, req *http.Request) {
 	hostname, _ := os.Hostname()
 	fmt.Fprintln(w, "Hostname:", hostname)
-	fmt.Fprintln(w)
 
-	testables := testable.FromEnv(os.Environ())
-	runTests(testables, w)
+	ifaces, _ := net.Interfaces()
+	for _, i := range ifaces {
+		addrs, _ := i.Addrs()
+		// handle err
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			fmt.Fprintln(w, "IP:", ip)
+		}
+	}
+
+	fmt.Fprintln(w, "RemoteAddr:", req.RemoteAddr)
+	if err := req.Write(w); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func runTests(testables []testable.Testable, output io.Writer) {
