@@ -9,7 +9,7 @@ import (
 func env2testable(e string, ch chan Testable, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	if !strings.HasPrefix(e, "TEST_") {
+	if !strings.HasPrefix(e, "COBD_T_") {
 		// Not a test env
 		return
 	}
@@ -20,7 +20,7 @@ func env2testable(e string, ch chan Testable, wg *sync.WaitGroup) {
 		return x[0], x[1]
 	}()
 
-	k = strings.TrimPrefix(k, "TEST_")
+	k = strings.TrimPrefix(k, "COBD_T_")
 
 	if strings.HasPrefix(k, "SQL_") {
 		ch <- SQLFrom(strings.TrimPrefix(k, "SQL_"), v)
