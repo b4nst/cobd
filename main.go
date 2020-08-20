@@ -19,13 +19,28 @@ func main() {
 	go runTests(testables, os.Stdout)
 
 	http.HandleFunc("/", rootHandler)
+	http.HandleFunc("/test", testHandler)
+
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
 		port = 80
 	}
-
 	fmt.Println("Starting up on port", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprint(":", port), nil))
+}
+
+func testHandler(w http.ResponseWriter, req *http.Request) {
+	testables := testable.FromEnv(os.Environ())
+	runTests(testables, w)
+}
+
+func rootHandler(w http.ResponseWriter, req *http.Request) {
+	hostname, _ := os.Hostname()
+	fmt.Fprintln(w, "Hostname:", hostname)
+	fmt.Fprintln(w)
+
+	testables := testable.FromEnv(os.Environ())
+	runTests(testables, w)
 }
 
 func runTests(testables []testable.Testable, output io.Writer) {
@@ -55,13 +70,4 @@ func runTests(testables []testable.Testable, output io.Writer) {
 	}
 	wg.Wait()
 	fmt.Fprintln(output, "Done.")
-}
-
-func rootHandler(w http.ResponseWriter, req *http.Request) {
-	hostname, _ := os.Hostname()
-	fmt.Fprintln(w, "Hostname:", hostname)
-	fmt.Fprintln(w)
-
-	testables := testable.FromEnv(os.Environ())
-	runTests(testables, w)
 }
